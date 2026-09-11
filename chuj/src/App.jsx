@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import "./chuj-scoreboard.css";
+import "./App.css";
 
 const PALETTE = {
   bg: "#241a12",
