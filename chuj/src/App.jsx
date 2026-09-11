@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
+import "./chuj-scoreboard.css";
 
 const PALETTE = {
   bg: "#241a12",
   bgSoft: "#3a2a1c",
-  card: "#f6eeE1",
+  card: "#f6eee1",
   cardAlt: "#efe3cf",
   ink: "#2a1d13",
   inkSoft: "#6b5a47",
@@ -20,6 +21,9 @@ const PALETTE = {
 };
 
 const STORAGE_KEY = "sedma-game-state";
+
+const FONT_BODY = "'Inter', Arial, sans-serif";
+const FONT_DISPLAY = "'Fraunces', Georgia, serif";
 
 function HeartIcon({ color = PALETTE.red, size = 18 }) {
   return (
@@ -42,19 +46,6 @@ function LeafIcon({ color = PALETTE.green, size = 18 }) {
       <path d="M20 4C10 4 4 10 4 18c0 1 .1 1.8.2 2 6-1 12-4.5 14.6-11C19.6 6.6 20 5.2 20 4z" />
       <path d="M5 19c4-7 9-11 14-13" stroke={PALETTE.card} strokeWidth="0.8" fill="none" opacity="0.5" />
     </svg>
-  );
-}
-
-function loadFont() {
-  return (
-    <style>{`
-      @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
-      .sedma-root { font-family: 'Inter', sans-serif; }
-      .sedma-display { font-family: 'Fraunces', serif; font-variation-settings: 'opsz' 40; }
-      .sedma-num { font-variant-numeric: tabular-nums; }
-      .sedma-chip { transition: transform .12s ease, box-shadow .12s ease; }
-      .sedma-chip:active { transform: scale(0.96); }
-    `}</style>
   );
 }
 
@@ -95,11 +86,20 @@ function Toggle({ checked, onChange, label, icon }) {
   return (
     <button
       onClick={() => onChange(!checked)}
-      className="sedma-chip flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium"
+      className="sedma-chip"
       style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        borderRadius: 999,
+        padding: "8px 12px",
+        fontSize: 14,
+        fontWeight: 500,
+        fontFamily: FONT_BODY,
         background: checked ? PALETTE.accent : PALETTE.cardAlt,
         color: checked ? PALETTE.ink : PALETTE.inkSoft,
         border: `1.5px solid ${checked ? PALETTE.accent : PALETTE.line}`,
+        cursor: "pointer",
       }}
     >
       {icon}
@@ -112,11 +112,17 @@ function PlayerChip({ active, onClick, name, color }) {
   return (
     <button
       onClick={onClick}
-      className="sedma-chip rounded-lg px-3 py-2 text-sm font-semibold border-2"
+      className="sedma-chip"
       style={{
+        borderRadius: 8,
+        padding: "8px 12px",
+        fontSize: 14,
+        fontWeight: 600,
+        fontFamily: FONT_BODY,
         background: active ? color : PALETTE.card,
         color: active ? "#fff" : PALETTE.ink,
-        borderColor: active ? color : PALETTE.line,
+        border: `2px solid ${active ? color : PALETTE.line}`,
+        cursor: "pointer",
       }}
     >
       {name}
@@ -125,23 +131,38 @@ function PlayerChip({ active, onClick, name, color }) {
 }
 
 function Stepper({ value, onChange, max = 8 }) {
+  const btnStyle = {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    fontSize: 18,
+    fontWeight: 700,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: PALETTE.cardAlt,
+    color: PALETTE.ink,
+    border: `1.5px solid ${PALETTE.line}`,
+    cursor: "pointer",
+  };
   return (
-    <div className="flex items-center gap-2">
-      <button
-        onClick={() => onChange(Math.max(0, value - 1))}
-        className="w-8 h-8 rounded-full text-lg font-bold flex items-center justify-center"
-        style={{ background: PALETTE.cardAlt, color: PALETTE.ink, border: `1.5px solid ${PALETTE.line}` }}
-      >
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <button onClick={() => onChange(Math.max(0, value - 1))} style={btnStyle}>
         –
       </button>
-      <div className="w-7 text-center sedma-num font-bold text-lg" style={{ color: PALETTE.ink }}>
+      <div
+        style={{
+          width: 28,
+          textAlign: "center",
+          fontVariantNumeric: "tabular-nums",
+          fontWeight: 700,
+          fontSize: 18,
+          color: PALETTE.ink,
+        }}
+      >
         {value}
       </div>
-      <button
-        onClick={() => onChange(Math.min(max, value + 1))}
-        className="w-8 h-8 rounded-full text-lg font-bold flex items-center justify-center"
-        style={{ background: PALETTE.cardAlt, color: PALETTE.ink, border: `1.5px solid ${PALETTE.line}` }}
-      >
+      <button onClick={() => onChange(Math.min(max, value + 1))} style={btnStyle}>
         +
       </button>
     </div>
@@ -192,9 +213,6 @@ export default function SedmaScoreboard() {
     rounds.forEach((r) => r.deltas.forEach((d, i) => (t[i] += d)));
     return t;
   }, [rounds]);
-
-  const losers = totals.map((t, i) => t >= 101).map((v, i) => v);
-  const anyoneOut = totals.some((t) => t >= 101);
 
   function startGame() {
     const finalPlayers = players.map((p, i) => (p.trim() ? p.trim() : `Hráč ${i + 1}`));
@@ -267,34 +285,32 @@ export default function SedmaScoreboard() {
 
   if (!loaded) {
     return (
-      <div className="sedma-root min-h-[400px] flex items-center justify-center" style={{ background: PALETTE.bg, color: PALETTE.card }}>
-        {loadFont()}
-        <div className="sedma-display text-lg">Načítavam hru…</div>
+      <div style={{ minHeight: 400, display: "flex", alignItems: "center", justifyContent: "center", background: PALETTE.bg, color: PALETTE.card, fontFamily: FONT_BODY }}>
+        <div style={{ fontFamily: FONT_DISPLAY, fontSize: 18 }}>Načítavam hru…</div>
       </div>
     );
   }
 
   return (
-    <div className="sedma-root min-h-[600px] w-full" style={{ background: PALETTE.bg }}>
-      {loadFont()}
-
-      <div className="max-w-md mx-auto px-4 py-6">
-        <div className="flex items-center gap-2 mb-6 justify-center">
+    <div style={{ minHeight: 600, width: "100%", background: PALETTE.bg, fontFamily: FONT_BODY, boxSizing: "border-box" }}>
+      <div style={{ maxWidth: 448, margin: "0 auto", padding: "24px 16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, justifyContent: "center" }}>
           <HeartIcon /> <AcornIcon /> <LeafIcon />
-          <h1 className="sedma-display text-2xl ml-1" style={{ color: PALETTE.card }}>
+          <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: 24, marginLeft: 4, color: PALETTE.card, margin: 0 }}>
             Chuj – zápis bodov
           </h1>
         </div>
 
         {phase === "setup" && (
-          <div className="rounded-2xl p-5" style={{ background: PALETTE.card, border: `1px solid ${PALETTE.line}` }}>
-            <div className="sedma-display text-lg mb-4" style={{ color: PALETTE.ink }}>
+          <div style={{ borderRadius: 16, padding: 20, background: PALETTE.card, border: `1px solid ${PALETTE.line}`, boxSizing: "border-box" }}>
+            <div style={{ fontFamily: FONT_DISPLAY, fontSize: 18, marginBottom: 16, color: PALETTE.ink }}>
               Zadaj mená hráčov
             </div>
-            <div className="flex flex-col gap-3">
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {players.map((p, i) => (
                 <input
                   key={i}
+                  className="sedma-input"
                   value={p}
                   onChange={(e) => {
                     const np = [...players];
@@ -302,15 +318,36 @@ export default function SedmaScoreboard() {
                     setPlayers(np);
                   }}
                   placeholder={`Hráč ${i + 1}`}
-                  className="rounded-lg px-3 py-2 text-base outline-none"
-                  style={{ background: PALETTE.cardAlt, border: `1.5px solid ${PALETTE.line}`, color: PALETTE.ink }}
+                  style={{
+                    borderRadius: 8,
+                    padding: "8px 12px",
+                    fontSize: 16,
+                    outline: "none",
+                    background: PALETTE.cardAlt,
+                    border: `1.5px solid ${PALETTE.line}`,
+                    color: PALETTE.ink,
+                    fontFamily: FONT_BODY,
+                    boxSizing: "border-box",
+                    width: "100%",
+                  }}
                 />
               ))}
             </div>
             <button
               onClick={startGame}
-              className="w-full mt-5 rounded-full py-3 font-semibold text-base"
-              style={{ background: PALETTE.accent, color: PALETTE.ink }}
+              style={{
+                width: "100%",
+                marginTop: 20,
+                borderRadius: 999,
+                padding: "12px 0",
+                fontWeight: 600,
+                fontSize: 16,
+                fontFamily: FONT_BODY,
+                background: PALETTE.accent,
+                color: PALETTE.ink,
+                border: "none",
+                cursor: "pointer",
+              }}
             >
               Začať hru
             </button>
@@ -320,7 +357,7 @@ export default function SedmaScoreboard() {
         {(phase === "playing" || phase === "finished") && (
           <>
             {/* Scoreboard */}
-            <div className="grid grid-cols-2 gap-2 mb-5">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
               {players.map((name, i) => {
                 const t = totals[i];
                 const out = t >= 101;
@@ -328,20 +365,25 @@ export default function SedmaScoreboard() {
                 return (
                   <div
                     key={i}
-                    className="rounded-xl px-3 py-3 flex flex-col items-center"
                     style={{
+                      borderRadius: 12,
+                      padding: "12px 12px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
                       background: PALETTE.card,
                       border: `2px solid ${out ? PALETTE.danger : warn ? PALETTE.warn : PALETTE.line}`,
+                      boxSizing: "border-box",
                     }}
                   >
-                    <div className="text-xs font-semibold truncate max-w-full" style={{ color: PALETTE.inkSoft }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: PALETTE.inkSoft, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
                       {name}
                     </div>
-                    <div className="sedma-num sedma-display text-2xl" style={{ color: out ? PALETTE.danger : PALETTE.ink }}>
+                    <div style={{ fontVariantNumeric: "tabular-nums", fontFamily: FONT_DISPLAY, fontSize: 24, color: out ? PALETTE.danger : PALETTE.ink }}>
                       {t}
                     </div>
                     {out && (
-                      <div className="text-[10px] font-bold tracking-wide" style={{ color: PALETTE.danger }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", color: PALETTE.danger }}>
                         PREHRÁVA
                       </div>
                     )}
@@ -351,20 +393,20 @@ export default function SedmaScoreboard() {
             </div>
 
             {phase === "finished" && (
-              <div className="rounded-2xl p-5 mb-5 text-center" style={{ background: PALETTE.goldSoft, border: `1px solid ${PALETTE.gold}` }}>
-                <div className="sedma-display text-xl mb-1" style={{ color: PALETTE.ink }}>
+              <div style={{ borderRadius: 16, padding: 20, marginBottom: 20, textAlign: "center", background: PALETTE.goldSoft, border: `1px solid ${PALETTE.gold}`, boxSizing: "border-box" }}>
+                <div style={{ fontFamily: FONT_DISPLAY, fontSize: 20, marginBottom: 4, color: PALETTE.ink }}>
                   Hra skončila
                 </div>
-                <div className="text-sm mb-3" style={{ color: PALETTE.inkSoft }}>
+                <div style={{ fontSize: 14, marginBottom: 12, color: PALETTE.inkSoft }}>
                   {players.filter((_, i) => totals[i] >= 101).join(", ")} {totals.filter((t) => t >= 101).length > 1 ? "sú chuji" : "je chuj"}.
                   <br />
                   Vyhráva {players.filter((_, i) => totals[i] < 101).join(", ")}.
                 </div>
-                <div className="flex gap-2 justify-center flex-wrap">
-                  <button onClick={nextGameSamePlayers} className="rounded-full px-4 py-2 text-sm font-semibold" style={{ background: PALETTE.accent, color: PALETTE.ink }}>
+                <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+                  <button onClick={nextGameSamePlayers} style={{ borderRadius: 999, padding: "8px 16px", fontSize: 14, fontWeight: 600, fontFamily: FONT_BODY, background: PALETTE.accent, color: PALETTE.ink, border: "none", cursor: "pointer" }}>
                     Ďalšia hra, rovnakí hráči
                   </button>
-                  <button onClick={newPlayers} className="rounded-full px-4 py-2 text-sm font-semibold" style={{ background: PALETTE.cardAlt, color: PALETTE.ink, border: `1px solid ${PALETTE.line}` }}>
+                  <button onClick={newPlayers} style={{ borderRadius: 999, padding: "8px 16px", fontSize: 14, fontWeight: 600, fontFamily: FONT_BODY, background: PALETTE.cardAlt, color: PALETTE.ink, border: `1px solid ${PALETTE.line}`, cursor: "pointer" }}>
                     Noví hráči
                   </button>
                 </div>
@@ -372,15 +414,15 @@ export default function SedmaScoreboard() {
             )}
 
             {phase === "playing" && (
-              <div className="rounded-2xl p-5 mb-5" style={{ background: PALETTE.card, border: `1px solid ${PALETTE.line}` }}>
-                <div className="sedma-display text-lg mb-3" style={{ color: PALETTE.ink }}>
+              <div style={{ borderRadius: 16, padding: 20, marginBottom: 20, background: PALETTE.card, border: `1px solid ${PALETTE.line}`, boxSizing: "border-box" }}>
+                <div style={{ fontFamily: FONT_DISPLAY, fontSize: 18, marginBottom: 12, color: PALETTE.ink }}>
                   Kolo {rounds.length + 1}
                 </div>
 
                 {/* Bodka */}
-                <div className="mb-4">
-                  <div className="text-sm font-semibold mb-2" style={{ color: PALETTE.ink }}>Bodka (nahlásená pred kolom)</div>
-                  <div className="flex flex-wrap gap-2">
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: PALETTE.ink }}>Bodka (nahlásená pred kolom)</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {players.map((name, i) => (
                       <PlayerChip
                         key={i}
@@ -397,19 +439,19 @@ export default function SedmaScoreboard() {
                   </div>
                 </div>
 
-                <div className="h-px my-4" style={{ background: PALETTE.line }} />
+                <div style={{ height: 1, margin: "16px 0", background: PALETTE.line }} />
 
                 {/* Víšniky, vedľa seba */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
                   <div>
-                    <div className="flex items-center gap-1.5 mb-2">
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
                       <AcornIcon size={16} />
-                      <span className="text-xs font-semibold" style={{ color: PALETTE.ink }}>Žaluďový víšnik</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: PALETTE.ink }}>Žaluďový víšnik</span>
                     </div>
-                    <div className="mb-2">
+                    <div style={{ marginBottom: 8 }}>
                       <Toggle checked={acornOut} onChange={setAcornOut} label={acornOut ? "Vyložený" : "Nevyložený"} icon={<AcornIcon size={14} color={acornOut ? PALETTE.ink : PALETTE.gold} />} />
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                       {players.map((name, i) => (
                         <PlayerChip key={i} name={name} color={PALETTE.gold} active={acornTaker === i} onClick={() => setAcornTaker(i)} />
                       ))}
@@ -417,14 +459,14 @@ export default function SedmaScoreboard() {
                   </div>
 
                   <div>
-                    <div className="flex items-center gap-1.5 mb-2">
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
                       <LeafIcon size={16} />
-                      <span className="text-xs font-semibold" style={{ color: PALETTE.ink }}>Zelený víšnik</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: PALETTE.ink }}>Zelený víšnik</span>
                     </div>
-                    <div className="mb-2">
+                    <div style={{ marginBottom: 8 }}>
                       <Toggle checked={leafOut} onChange={setLeafOut} label={leafOut ? "Vyložený" : "Nevyložený"} icon={<LeafIcon size={14} color={leafOut ? PALETTE.ink : PALETTE.green} />} />
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                       {players.map((name, i) => (
                         <PlayerChip key={i} name={name} color={PALETTE.green} active={leafTaker === i} onClick={() => setLeafTaker(i)} />
                       ))}
@@ -432,16 +474,21 @@ export default function SedmaScoreboard() {
                   </div>
                 </div>
 
-                <div className="h-px my-4" style={{ background: PALETTE.line }} />
+                <div style={{ height: 1, margin: "16px 0", background: PALETTE.line }} />
 
                 {/* Red cards */}
-                <div className="mb-2">
-                  <div className="flex items-center gap-2 mb-3">
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                     <HeartIcon />
-                    <span className="text-sm font-semibold" style={{ color: PALETTE.ink }}>Červené karty</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: PALETTE.ink }}>Červené karty</span>
                     <span
-                      className="ml-auto text-xs font-bold sedma-num px-2 py-1 rounded-full"
                       style={{
+                        marginLeft: "auto",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        fontVariantNumeric: "tabular-nums",
+                        padding: "4px 8px",
+                        borderRadius: 999,
                         background: redSum === 8 ? PALETTE.greenSoft : PALETTE.redSoft,
                         color: redSum === 8 ? PALETTE.green : PALETTE.red,
                       }}
@@ -449,10 +496,10 @@ export default function SedmaScoreboard() {
                       Súčet: {redSum}/8
                     </span>
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {players.map((name, i) => (
-                      <div key={i} className="flex items-center justify-between rounded-lg px-3 py-2" style={{ background: PALETTE.cardAlt }}>
-                        <span className="text-sm font-medium" style={{ color: PALETTE.ink }}>{name}</span>
+                      <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderRadius: 8, padding: "8px 12px", background: PALETTE.cardAlt }}>
+                        <span style={{ fontSize: 14, fontWeight: 500, color: PALETTE.ink }}>{name}</span>
                         <Stepper
                           value={redCounts[i]}
                           onChange={(v) => {
@@ -469,17 +516,24 @@ export default function SedmaScoreboard() {
                 <button
                   onClick={submitRound}
                   disabled={!canSubmit}
-                  className="w-full mt-5 rounded-full py-3 font-semibold text-base"
                   style={{
+                    width: "100%",
+                    marginTop: 20,
+                    borderRadius: 999,
+                    padding: "12px 0",
+                    fontWeight: 600,
+                    fontSize: 16,
+                    fontFamily: FONT_BODY,
                     background: canSubmit ? PALETTE.accent : PALETTE.line,
                     color: canSubmit ? PALETTE.ink : PALETTE.inkSoft,
+                    border: "none",
                     cursor: canSubmit ? "pointer" : "not-allowed",
                   }}
                 >
                   Zapísať kolo
                 </button>
                 {!canSubmit && (
-                  <div className="text-xs text-center mt-2" style={{ color: PALETTE.inkSoft }}>
+                  <div style={{ fontSize: 12, textAlign: "center", marginTop: 8, color: PALETTE.inkSoft }}>
                     {redSum !== 8 ? "Súčet červených kariet musí byť presne 8." : "Vyber, kto zobral oboch víšnikov."}
                   </div>
                 )}
@@ -488,28 +542,27 @@ export default function SedmaScoreboard() {
 
             {/* History / undo */}
             {rounds.length > 0 && (
-              <div className="rounded-2xl p-4 mb-8" style={{ background: PALETTE.bgSoft, border: `1px solid ${PALETTE.line}` }}>
-                <div className="flex items-center justify-between mb-2">
-                  <button onClick={() => setHistoryOpen(!historyOpen)} className="text-sm font-semibold" style={{ color: PALETTE.card }}>
+              <div style={{ borderRadius: 16, padding: 16, marginBottom: 32, background: PALETTE.bgSoft, border: `1px solid ${PALETTE.line}`, boxSizing: "border-box" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <button onClick={() => setHistoryOpen(!historyOpen)} style={{ fontSize: 14, fontWeight: 600, color: PALETTE.card, background: "none", border: "none", cursor: "pointer", fontFamily: FONT_BODY, padding: 0 }}>
                     História kôl ({rounds.length}) {historyOpen ? "▲" : "▼"}
                   </button>
                   <button
                     onClick={undoLast}
-                    className="text-sm font-semibold rounded-full px-3 py-1"
-                    style={{ background: PALETTE.redSoft, color: PALETTE.red }}
+                    style={{ fontSize: 14, fontWeight: 600, borderRadius: 999, padding: "4px 12px", background: PALETTE.redSoft, color: PALETTE.red, border: "none", cursor: "pointer", fontFamily: FONT_BODY }}
                   >
                     ↺ Vrátiť posledné kolo
                   </button>
                 </div>
                 {historyOpen && (
-                  <div className="flex flex-col gap-2 mt-2">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
                     {rounds.map((r, idx) => (
-                      <div key={idx} className="text-xs rounded-lg px-3 py-2" style={{ background: PALETTE.card, color: PALETTE.ink }}>
-                        <div className="font-semibold mb-1">
+                      <div key={idx} style={{ fontSize: 12, borderRadius: 8, padding: "8px 12px", background: PALETTE.card, color: PALETTE.ink }}>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>
                           Kolo {idx + 1}
                           {r.sweepIdx !== -1 ? ` — ${players[r.sweepIdx]} zobral všetko` : ""}
                         </div>
-                        <div className="flex gap-3 flex-wrap sedma-num">
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontVariantNumeric: "tabular-nums" }}>
                           {players.map((name, i) => (
                             <span key={i}>
                               {name}: <b style={{ color: r.deltas[i] < 0 ? PALETTE.red : PALETTE.green }}>{r.deltas[i] >= 0 ? "+" : ""}{r.deltas[i]}</b>
